@@ -3,9 +3,15 @@ import * as readline from 'readline';
 import { stdout } from 'process';
 //import {Cache} from './pokecache' 
 import {Cache} from './pokecache.js'
+import { Console } from "console";
 
 
 //state.ts
+export type Pokemon = {
+  name: string;
+  base_experience: number;
+  // Add other properties you might need
+};
 export class PokeAPI {
   private static readonly baseURL = "https://pokeapi.co/api/v2";
   private cache: Cache;
@@ -59,7 +65,27 @@ export class PokeAPI {
 
     return data
   }
-}
+  async fetchPokemon(pokemonName: string): Promise<Pokemon> {
+    const url = `${PokeAPI.baseURL}/pokemon/${pokemonName}`;
+    const cachedData = this.cache.get(url);
+
+      if(cachedData) {
+        console.log("📋 Using cached data for:", pokemonName);
+        return cachedData.val;
+    }
+    const response = await fetch(url,{
+      method:"GET",
+      headers:{
+        "Content-Type": "application/json",
+      }
+    })
+    const data = await response.json() as Pokemon
+    this.cache.add(url,data)
+
+    return data
+  }
+    
+
 
 // ...other imports...
 
@@ -177,10 +203,27 @@ export async function commandExplore(state: State, ...args: string[]){
 }
 
 export async function commandCatch(state: State, ...args: string[]){
-  console.log(`Throwing a Pokeball at ${args[1]}`)
-  const numba = Math.random()
+  const pokemonName = args[0]
 
+  if(!pokemonName){
+    console.log("Please provide a Pokemon name")
+    return
+  }
+  console.log(`Throwing a Pokeball at ${pokemonName}`)
+  try{
+    const pokemon = await state.pokeAPI.fetchPokemon(pokemonName)
+    const randomNumba = Math.random()
+    const catchChance = 1 - (pokemon.base_experience / 500)
+    if(catchChance>randomNumba){
+      console.log(`You've caught ${pokemonName}!`)
+      state.pokedex[pokemonName] = pokemon;
+    }else{
+      console.log(`${pokemonName} escaped!`)
+    }
 
+}catch(error){
+  console.log(`Could not find Pokemon ${pokemonName}:`)
+}
 }
   
 export type CLICommand = {
@@ -216,7 +259,12 @@ export type CLICommand = {
         name:"explore",
         description: 'takes the name of a location as a argument and returns all the pokemon in a givem area',
         callback: commandExplore,
-      }
+      },
+      catch:{
+        name:"catch",
+        description:"attempts to catch a pokemon",
+        callback:commandCatch,
+      },
     };
   }
 
@@ -227,6 +275,7 @@ export type CLICommand = {
     pokeAPI:PokeAPI;
     nextLocationsURL: ShallowLocations["next"],
     prevLocationsURL: ShallowLocations["previous"]
+    pokedex: Record<string, Pokemon>;
     callback: (state: State) => Promise<void>
     }
     
@@ -245,6 +294,7 @@ export type CLICommand = {
           pokeAPI: new PokeAPI(60000),
           nextLocationsURL: null,
           prevLocationsURL: null,
+          pokedex:{},
           callback: async () => {},
       };
   }
