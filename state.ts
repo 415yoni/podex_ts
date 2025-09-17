@@ -85,7 +85,7 @@ export class PokeAPI {
     return data
   }
     
-
+}
 
 // ...other imports...
 
@@ -101,14 +101,14 @@ const nextLocationsURL: string | null = null;
 const prevLocationsURL: string | null = null;
 const callback = async (state: State) => {};
 
-const state: State = {
-  readlineInterface,
-  commands,
-  pokeAPI: PokeAPIInstance,
-  nextLocationsURL,
-  prevLocationsURL,
-  callback
-};
+// const state: State = {
+//   readlineInterface,
+//   commands,
+//   pokeAPI: PokeAPIInstance,
+//   nextLocationsURL,
+//   prevLocationsURL,
+//   callback,
+// };
 
 export type ShallowLocations = {
   count:  number;
@@ -209,7 +209,7 @@ export async function commandCatch(state: State, ...args: string[]){
     console.log("Please provide a Pokemon name")
     return
   }
-  console.log(`Throwing a Pokeball at ${pokemonName}`)
+  console.log(`Throwing a Pokeball at ${pokemonName}...`)
   try{
     const pokemon = await state.pokeAPI.fetchPokemon(pokemonName)
     const randomNumba = Math.random()
@@ -225,6 +225,21 @@ export async function commandCatch(state: State, ...args: string[]){
   console.log(`Could not find Pokemon ${pokemonName}:`)
 }
 }
+export async function pokedex(state: State, ...args: string[]){
+  const caughtPokemon = Object.keys(state.pokedex);
+  
+  if (caughtPokemon.length === 0) {
+    console.log("Your Pokedex is empty. Go catch some Pokemon!");
+    return;
+  }
+  
+  console.log("Your Pokedex:");
+  for (const pokemonName of caughtPokemon) {
+    console.log(` - ${pokemonName}`);
+  }
+  
+}
+
   
 export type CLICommand = {
     name: string;
@@ -265,6 +280,11 @@ export type CLICommand = {
         description:"attempts to catch a pokemon",
         callback:commandCatch,
       },
+      pokedex:{
+        name:"pokedex",
+        description:"lists all names of the pokemon you've caught",
+        callback:pokedex,
+      }
     };
   }
 

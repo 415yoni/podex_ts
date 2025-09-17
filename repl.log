@@ -2,16 +2,6 @@
 > podex_ts@1.0.0 dev
 > npx tsc && node dist/main.js
 
-Pokedex > Exploring pastoria-city-area...
-Found Pokemon...
-tentacool
-tentacruel
-magikarp
-gyarados
-remoraid
-octillery
-wingull
-pelipper
-shellos
-gastrodon
+Pokedex > Throwing a Pokeball at squirtle...
+You've caught squirtle!
 Pokedex > Closing the Pokedex... Goodbye!
